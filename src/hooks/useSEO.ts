@@ -32,8 +32,8 @@ export const useSEO = () => {
       "@type": "Restaurant",
       name: "Vesper Lagos",
       description: "Premier fine dining restaurant in Lagos, Nigeria",
-      url: "https://www.vesperlagos.com",
-      telephone: "+234-812-345-6789",
+      url: "https://www.vesper-restaurant.vercel.app",
+      telephone: "+234-702-621-8523",
       address: { "@type": "PostalAddress", streetAddress: "14 Waterfront Drive", addressLocality: "Eko Atlantic City", addressRegion: "Lagos", addressCountry: "NG" },
       openingHoursSpecification: [
         { "@type": "OpeningHoursSpecification", dayOfWeek: ["Tuesday", "Wednesday", "Thursday", "Friday"], opens: "18:00", closes: "23:00" },
