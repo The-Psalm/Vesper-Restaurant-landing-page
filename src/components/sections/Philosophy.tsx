@@ -1,4 +1,4 @@
- 
+
 import { motion } from "framer-motion";
 import { C } from "../../constants/data";
 import FadeUp from "../ui/FadeUp";

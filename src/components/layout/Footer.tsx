@@ -1,4 +1,4 @@
- 
+
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { FaInstagram as Instagram, FaTwitter as Twitter, FaFacebook as Facebook } from "react-icons/fa";

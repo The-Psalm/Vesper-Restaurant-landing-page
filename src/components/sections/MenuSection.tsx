@@ -1,4 +1,4 @@
- 
+
 import { C, DISHES } from "../../constants/data";
 import FadeUp from "../ui/FadeUp";
 import DishCard from "../ui/DishCard";

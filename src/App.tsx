@@ -1,4 +1,4 @@
- 
+
 import GlobalStyles from "./components/ui/GlobalStyles";
 import CustomCursor from "./components/ui/CustomCursor";
 import Navbar from "./components/layout/Navbar";
