@@ -1,61 +1,94 @@
+import { useState } from "react";
+import { C, SERVICES } from "../../constants";
+import { useReveal } from "../../hooks/useReveal";
 
-import { motion } from "framer-motion";
-import { C, SERVICES } from "../../constants/data";
-import FadeUp from "../ui/FadeUp";
+const ServiceCard = ({ service }: { service: typeof SERVICES[0] }) => {
+  const [hovered, setHovered] = useState(false);
 
-const Services = () => (
-  <section id="events" style={{ padding: "140px 0", background: C.cream }}>
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 48px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 80, alignItems: "start" }}>
-        <div style={{ position: "sticky", top: 120 }}>
-          <FadeUp>
-            <span className="ff-cinzel" style={{ fontSize: 10, letterSpacing: "0.35em", color: C.sage, textTransform: "uppercase", display: "block", marginBottom: 20 }}>— Private Events —</span>
-            <h2 className="ff-display" style={{ fontSize: "clamp(40px,4.5vw,64px)", fontWeight: 300, color: C.dark, lineHeight: 1.05, marginBottom: 24 }}>
-              Your Occasion,<br /><em style={{ color: C.gold }}>Elevated</em>
-            </h2>
-            <p style={{ fontSize: 15, lineHeight: 1.85, color: `${C.dark}99`, fontWeight: 300, marginBottom: 36 }}>
-              We create experiences that become the standard against which all others are measured.
-            </p>
-            <div style={{ width: 48, height: 1, background: C.gold }} />
-          </FadeUp>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-          {SERVICES.map((s, i) => (
-            <FadeUp key={s.num} delay={i * .1}>
-              <motion.div
-                whileHover={{ y: -4, background: C.dark }}
-                style={{ padding: 40, background: "#E8E2DC", transition: "all .4s ease", minHeight: 240 }}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.querySelectorAll("*").forEach((n: any) => {
-                    if (n.dataset.goldText) n.style.color = C.goldLight;
-                    if (n.dataset.bodyText) n.style.color = "rgba(237,233,230,.65)";
-                    if (n.dataset.numText) n.style.color = "rgba(201,153,107,.2)";
-                  });
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.querySelectorAll("*").forEach((n: any) => {
-                    if (n.dataset.goldText) n.style.color = C.dark;
-                    if (n.dataset.bodyText) n.style.color = `${C.dark}99`;
-                    if (n.dataset.numText) n.style.color = "rgba(92,79,74,.08)";
-                  });
-                }}
-              >
-                <div className="ff-display" data-num-text="1"
-                  style={{ fontSize: 72, fontWeight: 300, color: "rgba(92,79,74,.08)", lineHeight: .85, marginBottom: 16, transition: "color .4s" }}>{s.num}</div>
-                <h3 className="ff-display" data-gold-text="1"
-                  style={{ fontSize: 26, fontWeight: 400, color: C.dark, marginBottom: 12, transition: "color .4s" }}>{s.title}</h3>
-                <p data-body-text="1"
-                  style={{ fontSize: 14, lineHeight: 1.75, color: `${C.dark}99`, fontWeight: 300, margin: 0, transition: "color .4s" }}>{s.desc}</p>
-              </motion.div>
-            </FadeUp>
-          ))}
-        </div>
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: "clamp(24px, 4vw, 40px)",
+        background: hovered ? C.dark : C.creamMid,
+        transition: "background .4s ease, transform .35s ease",
+        transform: hovered ? "translateY(-4px)" : "translateY(0)",
+        minHeight: "clamp(180px, 20vw, 230px)",
+      }}
+    >
+      <div className="ff-display" style={{ fontSize: "clamp(52px, 7vw, 70px)", fontWeight: 300, lineHeight: .85, marginBottom: 12, color: hovered ? "rgba(201,153,107,.15)" : "rgba(92,79,74,.08)", transition: "color .4s" }}>
+        {service.num}
       </div>
+      <h3 className="ff-display" style={{ fontSize: "clamp(18px, 2.5vw, 24px)", fontWeight: 400, marginBottom: 10, color: hovered ? C.cream : C.dark, transition: "color .4s" }}>
+        {service.title}
+      </h3>
+      <p style={{ fontSize: "clamp(12px, 1.5vw, 13px)", lineHeight: 1.75, fontWeight: 300, margin: 0, color: hovered ? "rgba(237,233,230,.6)" : `${C.dark}99`, transition: "color .4s" }}>
+        {service.desc}
+      </p>
     </div>
-  </section>
-);
+  );
+};
+
+const Services = () => {
+  const { ref, inView } = useReveal();
+
+  return (
+    <>
+      <style>{`
+        .services-wrapper {
+          display: grid;
+          grid-template-columns: 1fr 2fr;
+          gap: clamp(36px, 6vw, 80px);
+          align-items: start;
+        }
+        @media (max-width: 900px) {
+          .services-wrapper { grid-template-columns: 1fr; gap: 40px; }
+          .services-sticky-col { position: static !important; }
+        }
+
+        .services-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 2px;
+        }
+        @media (max-width: 480px) {
+          .services-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
+      <section id="events" className="v-section" ref={ref} style={{ background: C.cream }}>
+        <div className="v-container">
+          <div className="services-wrapper">
+
+            {/* Sticky intro */}
+            <div className={`services-sticky-col reveal ${inView ? "in-view" : ""}`}
+              style={{ position: "sticky", top: "110px" }}>
+              <span className="v-eyebrow" style={{ color: C.sage }}>— Private Events —</span>
+              <h2 className="v-h2" style={{ color: C.dark }}>
+                Your Occasion,<br />
+                <em style={{ color: C.gold, fontStyle: "italic" }}>Elevated</em>
+              </h2>
+              <p className="v-body" style={{ color: `${C.dark}99` }}>
+                We create experiences that become the standard against which all others are measured.
+              </p>
+              <div className="v-divider" />
+            </div>
+
+            {/* Cards grid */}
+            <div className="services-grid">
+              {SERVICES.map((s, i) => (
+                <div key={s.num} className={`reveal ${inView ? "in-view" : ""}`} style={{ transitionDelay: `${i * 0.1}s` }}>
+                  <ServiceCard service={s} />
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+    </>
+  );
+};
 
 export default Services;

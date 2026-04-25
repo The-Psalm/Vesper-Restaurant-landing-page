@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { FaInstagram as Instagram, FaTwitter as Twitter, FaFacebook as Facebook } from "react-icons/fa";
-import { C } from "../../constants/data";
+import { C } from "../../constants";
 
 const Footer = () => (
   <footer style={{ background: C.deep, padding: "80px 0 40px", position: "relative", overflow: "hidden" }}>

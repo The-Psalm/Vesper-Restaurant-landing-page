@@ -1,85 +1,156 @@
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ChevronDown } from "lucide-react";
-import { C } from "../../constants/data";
+import { useEffect, useRef, useState } from "react";
+import { C } from "../../constants";
 
 const Hero = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const fade = useTransform(scrollYProgress, [0, .6], [1, 0]);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [barsOpen, setBarsOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setBarsOpen(true), 100);
+    const t2 = setTimeout(() => setVisible(true), 800);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  // Parallax on scroll
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+
+    const fn = () => {
+      const pct = Math.min(window.scrollY / window.innerHeight, 1);
+      if (videoRef.current)   videoRef.current.style.transform = `translateY(${pct * 28}%)`;
+      if (contentRef.current) contentRef.current.style.opacity = `${Math.max(0, 1 - pct * 1.7)}`;
+    };
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+
+  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
+  const barStyle = (origin: "top" | "bottom"): React.CSSProperties => ({
+    position: "absolute", left: 0, right: 0, height: "clamp(40px, 8vh, 72px)",
+    background: C.deep, zIndex: 4,
+    ...(origin === "top" ? { top: 0, transformOrigin: "top" } : { bottom: 0, transformOrigin: "bottom" }),
+    transform: barsOpen ? "scaleY(0)" : "scaleY(1)",
+    transition: "transform 1.2s cubic-bezier(.76, 0, .24, 1)",
+  });
+
+  const fadeIn = (delay: number): React.CSSProperties => ({
+    opacity: visible ? 1 : 0,
+    transform: visible ? "translateY(0)" : "translateY(36px)",
+    transition: `opacity .9s ${delay}s cubic-bezier(.22,.61,.36,1), transform .9s ${delay}s cubic-bezier(.22,.61,.36,1)`,
+  });
 
   return (
-    <section ref={ref} style={{ position: "relative", height: "100vh", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      {/* Cinematic letterbox bars */}
-      <motion.div initial={{ scaleY: 1 }} animate={{ scaleY: 0 }} transition={{ duration: 1.2, delay: .2, ease: [.76, 0, .24, 1] }}
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: 80, background: C.deep, zIndex: 10, transformOrigin: "top" }} />
-      <motion.div initial={{ scaleY: 1 }} animate={{ scaleY: 0 }} transition={{ duration: 1.2, delay: .2, ease: [.76, 0, .24, 1] }}
-        style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: C.deep, zIndex: 10, transformOrigin: "bottom" }} />
+    <>
+      <style>{`
+        .hero-section {
+          position: relative; height: 100svh; min-height: 500px;
+          overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .hero-video {
+          position: absolute; inset: 0; width: 100%; height: 100%;
+          object-fit: cover; filter: brightness(.68);
+        }
+        .hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(to bottom, rgba(46,36,32,.5) 0%, rgba(46,36,32,.12) 45%, rgba(46,36,32,.72) 100%);
+        }
+        .hero-content {
+          position: relative; z-index: 3; text-align: center;
+          padding: 0 24px; max-width: 920px; width: 100%;
+        }
+        .hero-h1 {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(44px, 10vw, 126px);
+          color: #EDE9E6; line-height: .92; font-weight: 300;
+          margin: 0 0 18px; letter-spacing: -.01em;
+        }
+        .hero-sub {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(15px, 2.2vw, 22px);
+          color: rgba(237,233,230,.65); font-style: italic;
+          font-weight: 300; margin-bottom: 44px; letter-spacing: .02em;
+        }
+        .hero-btns {
+          display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+        }
+        @media (max-width: 480px) {
+          .hero-h1 { font-size: clamp(38px, 13vw, 56px); line-height: .96; margin-bottom: 14px; }
+          .hero-sub { margin-bottom: 32px; }
+          .hero-btns { flex-direction: column; align-items: center; }
+          .hero-btns button { width: 100%; max-width: 280px; justify-content: center; }
+        }
+        .hero-scroll-indicator {
+          position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+          z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .hero-scroll-label {
+          color: rgba(237,233,230,.38); font-size: 9px;
+          letter-spacing: .25em; text-transform: uppercase;
+        }
+        .scroll-chevron {
+          width: 13px; height: 13px;
+          border-right: 1px solid rgba(237,233,230,.35);
+          border-bottom: 1px solid rgba(237,233,230,.35);
+          transform: rotate(45deg);
+          animation: scrollBounce 1.8s ease-in-out infinite;
+        }
+        @media (max-width: 768px) { .hero-scroll-indicator { bottom: 24px; } }
+      `}</style>
 
-      {/* Video */}
-      <motion.div style={{ position: "absolute", inset: 0, y }} className="video-wrap">
-        <video autoPlay muted loop playsInline
-          style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.72)" }}
+      <section className="hero-section">
+        <div style={barStyle("top")} />
+        <div style={barStyle("bottom")} />
+
+        <video ref={videoRef} className="hero-video" autoPlay muted loop playsInline
           poster="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=80"
         >
           <source src="https://assets.mixkit.co/videos/29050/29050-720.mp4" type="video/mp4" />
         </video>
-        {/* Gradient overlay */}
-        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, rgba(46,36,32,.45) 0%, rgba(46,36,32,.2) 45%, rgba(46,36,32,.65) 100%)` }} />
-      </motion.div>
+        <div className="hero-overlay" />
 
-      {/* Content */}
-      <motion.div style={{ opacity: fade, position: "relative", zIndex: 5, textAlign: "center", padding: "0 24px", maxWidth: 900 }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: .9 }}>
-          <span className="ff-cinzel" style={{ color: C.gold, letterSpacing: "0.35em", fontSize: 11, textTransform: "uppercase", display: "block", marginBottom: 28 }}>
-            — Lagos, Nigeria —
-          </span>
-        </motion.div>
+        <div className="hero-content" ref={contentRef}>
+          <div style={fadeIn(0.2)}>
+            <span className="ff-cinzel" style={{ fontSize: "clamp(8px,1.8vw,10px)", letterSpacing: ".35em", color: C.gold, textTransform: "uppercase", display: "block", marginBottom: 22 }}>
+              — Lagos, Nigeria —
+            </span>
+          </div>
 
-        <motion.h1 className="ff-display"
-          initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: 1.05, ease: [.22, .61, .36, 1] }}
-          style={{ fontSize: "clamp(64px,9vw,130px)", color: C.cream, lineHeight: .92, fontWeight: 300, margin: "0 0 24px", letterSpacing: "-0.01em" }}
-        >
-          Where Every<br /><em style={{ fontStyle: "italic", color: C.goldLight }}>Moment</em><br />is Savoured
-        </motion.h1>
+          <div style={fadeIn(0.4)}>
+            <h1 className="hero-h1">
+              Where Every<br />
+              <em style={{ fontStyle: "italic", color: C.goldLight }}>Moment</em><br />
+              is Savoured
+            </h1>
+          </div>
 
-        <motion.p className="ff-display"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .9, delay: 1.4 }}
-          style={{ color: "rgba(237,233,230,.7)", fontSize: "clamp(18px,2.2vw,24px)", fontStyle: "italic", fontWeight: 300, marginBottom: 52, letterSpacing: "0.02em" }}
-        >
-          A culinary sanctuary where tradition meets innovation
-        </motion.p>
+          <div style={fadeIn(0.7)}>
+            <p className="hero-sub">A culinary sanctuary where tradition meets innovation</p>
+          </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: 1.6 }}
-          style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap" }}
-        >
-          <button
-            onClick={() => document.getElementById("reserve")?.scrollIntoView({ behavior: "smooth" })}
-            style={{ padding: "16px 44px", background: C.gold, border: "none", color: C.cream, fontSize: 12, letterSpacing: "0.2em", fontFamily: "'DM Sans',sans-serif", textTransform: "uppercase", fontWeight: 500, transition: "all .35s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = C.cream; (e.currentTarget as HTMLElement).style.color = C.dark; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = C.gold; (e.currentTarget as HTMLElement).style.color = C.cream; }}
-          >Reserve a Table</button>
-          <button
-            onClick={() => document.getElementById("menu")?.scrollIntoView({ behavior: "smooth" })}
-            style={{ padding: "16px 44px", background: "transparent", border: `1px solid rgba(237,233,230,.5)`, color: C.cream, fontSize: 12, letterSpacing: "0.2em", fontFamily: "'DM Sans',sans-serif", textTransform: "uppercase", fontWeight: 400, transition: "all .35s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = C.gold; (e.currentTarget as HTMLElement).style.color = C.gold; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(237,233,230,.5)"; (e.currentTarget as HTMLElement).style.color = C.cream; }}
-          >View Menu</button>
-        </motion.div>
-      </motion.div>
+          <div style={{ ...fadeIn(0.9) }} className="hero-btns">
+            <button className="v-btn-gold" onClick={() => scrollTo("reserve")}>
+              Reserve a Table
+            </button>
+            <button className="v-btn-outline" onClick={() => scrollTo("menu")}
+              style={{ color: C.cream, borderColor: "rgba(237,233,230,.45)" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = C.gold; (e.currentTarget as HTMLElement).style.color = C.gold; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(237,233,230,.45)"; (e.currentTarget as HTMLElement).style.color = C.cream; }}
+            >
+              View Menu
+            </button>
+          </div>
+        </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2 }}
-        style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", zIndex: 5, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}
-      >
-        <span style={{ color: "rgba(237,233,230,.4)", fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase" }}>Scroll</span>
-        <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}>
-          <ChevronDown size={16} color="rgba(237,233,230,.4)" />
-        </motion.div>
-      </motion.div>
-    </section>
+        <div className="hero-scroll-indicator" style={fadeIn(1.4)}>
+          <span className="hero-scroll-label">Scroll</span>
+          <div className="scroll-chevron" />
+        </div>
+      </section>
+    </>
   );
 };
 

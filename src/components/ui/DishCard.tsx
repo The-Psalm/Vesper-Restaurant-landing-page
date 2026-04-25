@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { C, DISHES } from "../../constants/data";
+import { C, DISHES } from "../../constants";
 
 const DishCard = ({ dish, index }: { dish: typeof DISHES[0]; index: number }) => {
   const [hovered, setHovered] = useState(false);

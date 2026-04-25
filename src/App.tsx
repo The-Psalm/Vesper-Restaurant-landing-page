@@ -5,7 +5,7 @@ import Navbar from "./components/layout/Navbar";
 import Hero from "./components/sections/Hero";
 import Marquee from "./components/sections/Marquee";
 import Philosophy from "./components/sections/Philosophy";
-import MenuSection from "./components/sections/MenuSection";
+import Menu from "./components/sections/Menu";
 import Experience from "./components/sections/Experience";
 import Services from "./components/sections/Services";
 import Testimonials from "./components/sections/Testimonials";
@@ -25,7 +25,7 @@ export default function App() {
         <Hero />
         <Marquee />
         <Philosophy />
-        <MenuSection />
+        <Menu />
         <Experience />
         <Services />
         <Testimonials />

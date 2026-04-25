@@ -1,77 +1,144 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
-import { C, NAV } from "../../constants/data";
+import { C, NAV_ITEMS } from "../../constants";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
-    window.addEventListener("scroll", fn);
+    window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  const scrollTo = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); setOpen(false); };
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: "smooth" });
+    setMenuOpen(false);
+  };
+
+  const navBg = scrolled ? `rgba(237,233,230,.97)` : "transparent";
+  const textColor = scrolled ? C.dark : C.cream;
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -80 }}
-        animate={{ y: 0 }}
-        transition={{ duration: .8, ease: [.22, .61, .36, 1] }}
-        style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
-          background: scrolled ? `rgba(237,233,230,.96)` : "transparent",
-          backdropFilter: scrolled ? "blur(12px)" : "none",
-          borderBottom: scrolled ? `1px solid rgba(201,153,107,.15)` : "none",
-          transition: "background .4s,backdrop-filter .4s,border .4s",
-          padding: "0 48px", height: 72, display: "flex", alignItems: "center", justifyContent: "space-between",
-        }}
-      >
+      <style>{`
+        .nav-root {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+          height: 68px; display: flex; align-items: center; justify-content: space-between;
+          padding: 0 48px; transition: background .4s, backdrop-filter .4s, border-color .4s;
+        }
+        @media (max-width: 1024px) { .nav-root { padding: 0 32px; } }
+        @media (max-width: 768px)  { .nav-root { padding: 0 20px; height: 60px; } }
+
+        .nav-desktop-links { display: flex; gap: 36px; align-items: center; }
+        @media (max-width: 768px) { .nav-desktop-links { display: none; } }
+
+        .hamburger-btn {
+          display: none; flex-direction: column; gap: 5px; background: none; border: none;
+          padding: 6px; z-index: 1001;
+        }
+        .hamburger-btn span { display: block; width: 22px; height: 1.5px; transition: all .35s; }
+        .hamburger-btn.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+        .hamburger-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .hamburger-btn.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+        @media (max-width: 768px) { .hamburger-btn { display: flex; } }
+
+        .mobile-overlay {
+          position: fixed; inset: 0; z-index: 999; background: #2E2420;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+          opacity: 0; pointer-events: none; transition: opacity .4s ease;
+        }
+        .mobile-overlay.open { opacity: 1; pointer-events: all; }
+
+        .mobile-nav-item {
+          font-family: 'Cinzel', serif; font-size: clamp(26px, 8vw, 42px); letter-spacing: .2em;
+          text-transform: uppercase; color: #EDE9E6; background: none; border: none;
+          padding: 16px 0; width: 100%; text-align: center;
+          transition: color .3s; position: relative;
+          border-bottom: 1px solid rgba(201,153,107,.08);
+        }
+        .mobile-nav-item:last-child { border-bottom: none; }
+        .mobile-nav-item:hover { color: #C9996B; }
+        .mobile-nav-item.gold { color: #C9996B; }
+
+        .nav-cta-btn {
+          padding: 9px 24px; border: 1px solid #C9996B; background: transparent;
+          font-size: 11px; letter-spacing: .18em; font-family: 'DM Sans', sans-serif;
+          text-transform: uppercase; transition: all .3s;
+        }
+        .nav-cta-btn:hover { background: #C9996B !important; color: #EDE9E6 !important; }
+
+        .nav-link-btn {
+          background: none; border: none; padding: 0; font-size: 11px;
+          letter-spacing: .15em; font-family: 'DM Sans', sans-serif; text-transform: uppercase;
+          transition: color .3s;
+        }
+
+        .mobile-close-x {
+          position: absolute; top: 20px; right: 20px;
+          background: none; border: none; color: rgba(237,233,230,.5);
+          font-size: 28px; line-height: 1; transition: color .3s;
+        }
+        .mobile-close-x:hover { color: #C9996B; }
+
+        .mobile-contact-bar {
+          position: absolute; bottom: 40px; left: 0; right: 0; text-align: center;
+        }
+      `}</style>
+
+      <nav className="nav-root" style={{
+        background: menuOpen ? "transparent" : navBg,
+        backdropFilter: scrolled && !menuOpen ? "blur(14px)" : "none",
+        borderBottom: scrolled && !menuOpen ? `1px solid rgba(201,153,107,.15)` : "none",
+      }}>
         {/* Logo */}
-        <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} style={{ background: "none", border: "none", padding: 0 }}>
-          <span className="ff-cinzel" style={{ fontSize: 22, letterSpacing: "0.25em", color: scrolled ? C.dark : C.cream, fontWeight: 500, transition: "color .4s" }}>VESPER</span>
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          style={{ background: "none", border: "none", fontFamily: "'Cinzel',serif", fontSize: 20, letterSpacing: ".25em", color: menuOpen ? C.cream : textColor, fontWeight: 500, transition: "color .4s" }}
+        >
+          VESPER
         </button>
 
-        {/* Desktop nav */}
-        <div style={{ display: "flex", gap: 40, alignItems: "center" }}>
-          {NAV.slice(0, -1).map(item => (
-            <button key={item} className="nav-link"
-              onClick={() => scrollTo(item.toLowerCase())}
-              style={{ background: "none", border: "none", padding: 0, fontSize: 13, letterSpacing: "0.15em", fontFamily: "'DM Sans',sans-serif", fontWeight: 400, color: scrolled ? C.dark : C.cream, transition: "color .4s", textTransform: "uppercase" }}
+        {/* Desktop links */}
+        <div className="nav-desktop-links">
+          {NAV_ITEMS.map(item => (
+            <button key={item} className="nav-link-btn nav-underline"
+              onClick={() => scrollTo(item)}
+              style={{ color: textColor }}
             >{item}</button>
           ))}
-          <button
-            onClick={() => scrollTo("reserve")}
-            style={{ padding: "10px 28px", border: `1px solid ${C.gold}`, background: "transparent", color: scrolled ? C.dark : C.cream, fontSize: 12, letterSpacing: "0.18em", fontFamily: "'DM Sans',sans-serif", textTransform: "uppercase", transition: "all .35s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = C.gold; (e.currentTarget as HTMLElement).style.color = C.cream; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = scrolled ? C.dark : C.cream; }}
-          >Reserve</button>
+          <button className="nav-cta-btn" onClick={() => scrollTo("reserve")} style={{ color: textColor }}>
+            Reserve
+          </button>
         </div>
 
-        {/* Mobile hamburger */}
-        <button onClick={() => setOpen(o => !o)} style={{ display: "none", background: "none", border: "none", color: scrolled ? C.dark : C.cream }}>
-          {open ? <X size={22} /> : <Menu size={22} />}
+        {/* Hamburger */}
+        <button className={`hamburger-btn ${menuOpen ? "open" : ""}`} onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
+          <span style={{ background: menuOpen ? C.cream : textColor }} />
+          <span style={{ background: menuOpen ? C.cream : textColor }} />
+          <span style={{ background: menuOpen ? C.cream : textColor }} />
         </button>
-      </motion.nav>
+      </nav>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {open && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-            style={{ position: "fixed", inset: 0, zIndex: 999, background: C.deep, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 40 }}>
-            {NAV.map(item => (
-              <button key={item} onClick={() => scrollTo(item.toLowerCase())}
-                className="ff-cinzel"
-                style={{ background: "none", border: "none", fontSize: 28, color: C.cream, letterSpacing: "0.2em", textTransform: "uppercase" }}>
-                {item}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Mobile overlay */}
+      <div className={`mobile-overlay ${menuOpen ? "open" : ""}`}>
+        {NAV_ITEMS.map(item => (
+          <button key={item} className="mobile-nav-item" onClick={() => scrollTo(item)}>{item}</button>
+        ))}
+        <button className="mobile-nav-item gold" onClick={() => scrollTo("reserve")}>Reserve</button>
+
+        <div className="mobile-contact-bar">
+          <p style={{ fontFamily: "'Cinzel',serif", fontSize: 9, letterSpacing: ".3em", color: "rgba(201,153,107,.5)", textTransform: "uppercase" }}>
+            14 Waterfront Drive, Eko Atlantic · Lagos
+          </p>
+        </div>
+      </div>
     </>
   );
 };

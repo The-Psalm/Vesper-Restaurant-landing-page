@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star } from "lucide-react";
-import { C, TESTIMONIALS } from "../../constants/data";
+import { C, TESTIMONIALS } from "../../constants";
 import FadeUp from "../ui/FadeUp";
 
 const Testimonials = () => {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { MapPin, Phone, Mail, Clock, ArrowRight } from "lucide-react";
-import { C } from "../../constants/data";
+import { C } from "../../constants";
 import FadeUp from "../ui/FadeUp";
 
 const Reservation = () => {
