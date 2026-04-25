@@ -2,7 +2,7 @@ import { useState } from "react";
 import { C, DISHES } from "../../constants";
 import { useReveal } from "../../hooks/useReveal";
 
-const DishCard = ({ dish, index }: { dish: typeof DISHES[0]; index: number }) => {
+const DishCard = ({ dish }: { dish: typeof DISHES[0]; index: number }) => {
   const [hovered, setHovered] = useState(false);
   const isMobile = window.innerWidth <= 480;
   const rot = isMobile ? 0 : dish.rot;
